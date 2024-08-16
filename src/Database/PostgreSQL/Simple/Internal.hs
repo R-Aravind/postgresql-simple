@@ -241,9 +241,9 @@ connectPostgreSQL connstr = do
                 | otherwise       = "SET datestyle TO ISO;SET client_encoding TO UTF8;SET standard_conforming_strings TO on"
           _ <- execute_ wconn settings
           return wconn
-      _ -> do
+      x -> do
           msg <- maybe "connectPostgreSQL error" id <$> PQ.errorMessage conn
-          throwIO $ fatalError msg
+          throwIO $ fatalError $ B8.pack ((B8.unpack $ msg) ++ " " ++ show x)
 
 connectdb :: ByteString -> IO PQ.Connection
 #if defined(mingw32_HOST_OS)
@@ -408,6 +408,12 @@ finishExecute _conn q result = do
 
 throwResultError :: ByteString -> PQ.Result -> PQ.ExecStatus -> IO a
 throwResultError _ result status = do
+    sfile   <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagSourceFile
+    sline  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagSourceLine
+    sfunc  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagSourceFunction
+    scontext  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagContext
+    squery  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagInternalQuery
+    spos  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagStatementPosition
     errormsg  <- fromMaybe "" <$>
                  PQ.resultErrorField result PQ.DiagMessagePrimary
     detail    <- fromMaybe "" <$>
@@ -419,10 +425,10 @@ throwResultError _ result status = do
                        , sqlExecStatus = status
                        , sqlErrorMsg = errormsg
                        , sqlErrorDetail = detail
-                       , sqlErrorHint = hint }
+                       , sqlErrorHint = B8.pack ("DiagMessageHint: " <> (show hint) ++ " <> DiagSourceFile: " ++ (show sfile) ++ " <> DiagSourceLine: " ++ (show sline) ++ " <> DiagSourceFunction: " ++ (show sfunc) ++ " <> DiagContext: " ++ (show scontext) ++ " <> DiagInternalQuery: " ++ (show squery) ++ " <> DiagStatementPosition: " ++ (show spos)) }
 
 disconnectedError :: SqlError
-disconnectedError = fatalError "connection disconnected"
+disconnectedError = fatalError $ B8.pack ("connection disconnected" ++ " disconnectedError")
 
 -- | Atomically perform an action with the database handle, if there is one.
 withConnection :: Connection -> (PQ.Connection -> IO a) -> IO a

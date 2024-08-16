@@ -142,7 +142,7 @@ getCopyData conn = withConnection conn loop
                           sqlState       = "",
                           sqlExecStatus  = FatalError,
                           sqlErrorMsg    = maybe "" id mmsg,
-                          sqlErrorDetail = "",
+                          sqlErrorDetail = "CopyOutError",
                           sqlErrorHint   = funcName
                         }
 
@@ -212,7 +212,7 @@ doCopyIn funcName action = loop
                       sqlState = "",
                       sqlExecStatus  = FatalError,
                       sqlErrorMsg    = maybe "" id mmsg,
-                      sqlErrorDetail = "",
+                      sqlErrorDetail = "CopyInError",
                       sqlErrorHint   = funcName
                     }
         PQ.CopyInWouldBlock -> do

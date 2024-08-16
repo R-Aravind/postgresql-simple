@@ -47,6 +47,7 @@ import           Database.PostgreSQL.LibPQ (Oid(..),LoFd(..))
 import qualified Database.PostgreSQL.LibPQ as PQ
 import           Database.PostgreSQL.Simple.Internal
 import           System.IO (IOMode(..),SeekMode(..))
+import qualified Data.ByteString.Char8 as B8
 
 liftPQ :: B.ByteString -> Connection -> (PQ.Connection -> IO (Maybe a)) -> IO a
 liftPQ str conn m = withConnection conn $ \c -> do
@@ -54,7 +55,7 @@ liftPQ str conn m = withConnection conn $ \c -> do
     case res of
       Nothing -> do
           msg <- maybe str id <$> PQ.errorMessage c
-          throwIO $ fatalError msg
+          throwIO $ fatalError $ B8.pack ((B8.unpack msg) ++ " liftPQ")
       Just  x -> return x
 
 loCreat :: Connection -> IO Oid
