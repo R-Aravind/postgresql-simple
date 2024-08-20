@@ -79,6 +79,7 @@ doCopy funcName conn template q = do
                   (B.unpack funcName ++ " " ++ msg)
                   template
     let err = errMsg $ show status
+    let x = B.pack (B.unpack funcName ++ " " ++ "doCopy")
     case status of
       PQ.EmptyQuery    -> err
       PQ.CommandOk     -> err
@@ -91,9 +92,9 @@ doCopy funcName conn template q = do
 #if MIN_VERSION_postgresql_libpq(0,9,2)
       PQ.SingleTuple   -> errMsg "single-row mode is not supported"
 #endif
-      PQ.BadResponse   -> throwResultError funcName result status
-      PQ.NonfatalError -> throwResultError funcName result status
-      PQ.FatalError    -> throwResultError funcName result status
+      PQ.BadResponse   -> throwResultError x result status
+      PQ.NonfatalError -> throwResultError x result status
+      PQ.FatalError    -> throwResultError x result status
 
 data CopyOutResult
    = CopyOutRow  !B.ByteString         -- ^ Data representing either exactly

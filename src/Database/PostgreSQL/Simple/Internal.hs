@@ -407,7 +407,7 @@ finishExecute _conn q result = do
                     else error ("finishExecute:  not an int: " ++ B8.unpack str)
 
 throwResultError :: ByteString -> PQ.Result -> PQ.ExecStatus -> IO a
-throwResultError _ result status = do
+throwResultError tag result status = do
     sfile   <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagSourceFile
     sline  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagSourceLine
     sfunc  <- fromMaybe "" <$> PQ.resultErrorField result PQ.DiagSourceFunction
@@ -425,7 +425,7 @@ throwResultError _ result status = do
                        , sqlExecStatus = status
                        , sqlErrorMsg = errormsg
                        , sqlErrorDetail = detail
-                       , sqlErrorHint = B8.pack ("DiagMessageHint: " <> (show hint) ++ " <> DiagSourceFile: " ++ (show sfile) ++ " <> DiagSourceLine: " ++ (show sline) ++ " <> DiagSourceFunction: " ++ (show sfunc) ++ " <> DiagContext: " ++ (show scontext) ++ " <> DiagInternalQuery: " ++ (show squery) ++ " <> DiagStatementPosition: " ++ (show spos)) }
+                       , sqlErrorHint = B8.pack ("DiagMessageHint: " <> (show hint) ++ " <> DiagSourceFile: " ++ (show sfile) ++ " <> DiagSourceLine: " ++ (show sline) ++ " <> DiagSourceFunction: " ++ (show sfunc) ++ " <> DiagContext: " ++ (show scontext) ++ " <> DiagInternalQuery: " ++ (show squery) ++ " <> DiagStatementPosition: " ++ (show spos)++ " tag: " ++ (show tag)) }
 
 disconnectedError :: SqlError
 disconnectedError = fatalError $ B8.pack ("connection disconnected" ++ " disconnectedError")
